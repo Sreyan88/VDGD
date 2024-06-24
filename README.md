@@ -51,9 +51,4 @@ Supported arguments:
 
 ## Categorizing Visual Hallucinations
 
-<<<<<<< Updated upstream
 ## VDGD Inference
-=======
-
-## VDGD Inference
->>>>>>> Stashed changes
