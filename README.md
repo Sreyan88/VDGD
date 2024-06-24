@@ -78,3 +78,23 @@ I will provide you with a response from an AI agent which has been asked to desc
 ```
 
 ## VDGD Inference
+For generating description logits:
+```
+python llava_sampling_desc_logits.py \
+--model_path liuhaotian/llava-v1.5-7b \
+--amateur_model_path meta-llama/Llama-2-7b-chat-hf \
+--question_file vallu_benchmark.jsonl \
+--answers_file out.jsonl \
+--use_dd
+```
+
+For VDGD Inference:
+```
+python vdgd.py \
+--model_path liuhaotian/llava-v1.5-7b \
+--question_file vallu_benchmark.jsonl \
+--answers_file output.jsonl \
+--logits_file logits_out.pkl \
+--decoding_type "pd_kl_2_3_sample" \
+--kl_reduction "sum"
+```

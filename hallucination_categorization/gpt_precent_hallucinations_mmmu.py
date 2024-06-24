@@ -87,8 +87,6 @@ with open(f"../AlignTDS/src/demo/just_eval+{model_generated_dataset_name}_tp.pkl
 model_name = "meta-llama/Llama-2-7b-hf"
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True, access_token="")
 
-# object_file_path = "../LLaMA-Factory/output_dir_llava_15_mmmu_openended_ordered/generated_predictions.jsonl"
-
 #Read the questions file
 with open("../datasets/mmmu_openended.jsonl","r") as file:
     prompt_list = []
