@@ -28,112 +28,6 @@ llm_templates = {
     "meta-llama/Llama-2-7b-chat-hf": "[INST] <<SYS>>\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n<</SYS>>\n\n{in_text} [/INST]"
 }
 
-
-def adaptive_decoding(model, tokenizer, image_processor, prompt, image_path, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
-    print(tokenizer)
-    bos_token_id = tokenizer.bos_token_id
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else eos_token_id
-
-    device = model.device
-
-    vocabulary = len(tokenizer)
-    up_bound = -np.log2(1 / vocabulary)
-
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
-    image = Image.open(image_path)
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0].unsqueeze(0).half().cuda() 
-    input_token_len = input_ids.shape[1]
-
-    unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
-    eos_token_id_tensor = torch.tensor([eos_token_id]).to(input_ids.device) if eos_token_id is not None else None
-    for _ in range(max_len):
-        greedy_output = model.generate(input_ids, images=image_tensor, max_new_tokens=1, do_sample=False, return_dict_in_generate=True, output_scores=True, bos_token_id=bos_token_id, eos_token_id=eos_token_id, pad_token_id=eos_token_id)
-        logit = greedy_output['scores'][0]
-        
-        x = nn.functional.softmax(logit, dim=-1)
-        sorted_values, sorted_indices = torch.sort(x, descending=True)
-        tensor = torch.arange(1, vocabulary + 1).repeat(input_ids.shape[0], 1).to('cuda')
-        cumulative_sum = torch.cumsum(sorted_values, dim=1).to('cuda')
-        A = sorted_values * torch.log(sorted_values * (vocabulary - tensor) / (1.0 - cumulative_sum))
-        C = (1 - cumulative_sum) / (vocabulary - tensor)
-        D = (1 - cumulative_sum + sorted_values) / (vocabulary + 1 - tensor)
-        B = torch.log(C / D)
-
-        delta_conf = (A + (1 - cumulative_sum + sorted_values) * B) / up_bound
-        delta_conf[torch.isnan(delta_conf)] = 0 
-        
-        sorted_indices_to_remove = delta_conf < epsilon
-        sorted_indices_to_remove[..., -1 :] = 0
-        # do the truncation
-        indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
-        
-        logit = logit.masked_fill(indices_to_remove, -float("Inf"))
-        x = nn.functional.softmax(logit, dim=-1)
-        
-        next_id = torch.multinomial(x, num_samples=1).squeeze(1)
-        # next_id = torch.argmax(x)
-        next_id = next_id * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
-        
-        unfinished_sequences = unfinished_sequences.mul(
-                        next_id.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
-                    )
-
-        print(next_id)
-        print('------------------')
-        input_ids = torch.cat([input_ids, next_id[:, None]], dim=-1)
-        if unfinished_sequences.max() == 0:
-            break
-
-    generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    return generated_results
-
-def plausibility_decoding(model, tokenizer, image_processor, prompt, image_path, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
-
-    bos_token_id = tokenizer.bos_token_id
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else eos_token_id
-
-    device = model.device
-
-
-    # prompt = prompt.replace("<image>\n", "")
-    tokens = tokenizer.tokenize(prompt)
-    prefix_id_list = tokenizer.convert_tokens_to_ids(tokens)
-    # input_ids = torch.tensor(prefix_id_list).to(device)
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(model.device)
-    image = Image.open(image_path)
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0].unsqueeze(0).half().to(model.device)
-    input_token_len = input_ids.shape[1]
-
-    one_hot = torch.eye(len(tokenizer)).to(model.device)
-
-    unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
-    eos_token_id_tensor = torch.tensor([eos_token_id]).to(input_ids.device) if eos_token_id is not None else None
-    for _ in range(max_len):
-        output = model.generate(input_ids, images=image_tensor, max_new_tokens=1, do_sample=False, return_dict_in_generate=True, output_scores=True, output_logits=True, bos_token_id=bos_token_id, eos_token_id=eos_token_id, pad_token_id=eos_token_id)
-        logit = output['logits'][0]
-        cutoff = torch.log(torch.tensor(alpha)) + logit.max(dim=-1, keepdim=True).values
-
-        logit = logit.masked_fill(logit < cutoff, -float("inf"))
-        x = nn.functional.softmax(logit, dim=-1)
-
-        next_id = torch.argmax(x)
-        next_id = next_id * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
-        
-        unfinished_sequences = unfinished_sequences.mul(
-                        next_id.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
-                    )
-    
-        input_ids = torch.cat([input_ids, next_id[:, None]], dim=-1)
-        # print(tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0])
-        # print()
-        if unfinished_sequences.max() == 0:
-            break
-
-    generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    return generated_results
-
 def greedy_decoding(model, tokenizer, image_processor, prompt, image_path, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
 
     bos_token_id = tokenizer.bos_token_id
@@ -208,110 +102,6 @@ def sample_decoding(model, tokenizer, image_processor, prompt, image_path, do_sa
     generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
     return generated_results
 
-def plausibility_decoding_kl(model, tokenizer, image_processor, prompt, image_path, log_tup, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
-
-    bos_token_id = tokenizer.bos_token_id
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else eos_token_id
-
-    device = model.device
-
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(device)
-    image = Image.open(image_path)
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0].unsqueeze(0).half().to(device) 
-    input_token_len = input_ids.shape[1]
-
-    one_hot = torch.eye(len(tokenizer)).to(model.device)
-
-    unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
-    eos_token_id_tensor = torch.tensor([eos_token_id]).to(input_ids.device) if eos_token_id is not None else None
-    for _ in range(max_len):
-        output = model.generate(input_ids, images=image_tensor, max_new_tokens=1, do_sample=False, return_dict_in_generate=True, output_scores=True, output_logits=True, bos_token_id=bos_token_id, eos_token_id=eos_token_id, pad_token_id=eos_token_id)
-
-        logit = output['logits'][0]
-
-        cutoff = torch.log(torch.tensor(alpha)) + logit.max(dim=-1, keepdim=True).values
-
-        logit = logit.masked_fill(logit < cutoff, -float("inf"))
-
-        top_k_logit_idxs = (logit[0]!=-float("inf")).nonzero()
-
-        for tpo_k_idx in top_k_logit_idxs:
-            kl_div = float("inf")
-            for j in range(len(log_tup)):
-                kl_div = min(kl_div, torch.nn.functional.kl_div(log_tup[j], one_hot[tpo_k_idx.item()], reduction='batchmean').item())
-            logit[0][tpo_k_idx.item()] = -kl_div
-
-        x = nn.functional.softmax(logit, dim=-1)
-
-        next_id = torch.argmax(x)
-        next_id = next_id * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
-        
-        unfinished_sequences = unfinished_sequences.mul(
-                        next_id.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
-                    )
-    
-        input_ids = torch.cat([input_ids, next_id[:, None]], dim=-1)
-        # print(tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0])
-        # print()
-        if unfinished_sequences.max() == 0:
-            break
-
-    generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    return generated_results
-
-def plausibility_decoding_kl_multinomial_sample(model, tokenizer, image_processor, prompt, image_path, log_tup, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
-
-    bos_token_id = tokenizer.bos_token_id
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else eos_token_id
-
-    device = model.device
-
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(model.device)
-    image = Image.open(image_path)
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0].unsqueeze(0).half().to(model.device)
-    input_token_len = input_ids.shape[1]
-
-    one_hot = torch.eye(len(tokenizer)).to(model.device)
-
-    unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
-    eos_token_id_tensor = torch.tensor([eos_token_id]).to(input_ids.device) if eos_token_id is not None else None
-    for _ in range(max_len):
-        output = model.generate(input_ids, images=image_tensor, max_new_tokens=1, do_sample=True, top_p=0.5, temperature=0.5, return_dict_in_generate=True, output_scores=True, output_logits=True, bos_token_id=bos_token_id, eos_token_id=eos_token_id, pad_token_id=eos_token_id)
-
-        logit = output['scores'][0]
-
-        cutoff = torch.log(torch.tensor(alpha)) + logit.max(dim=-1, keepdim=True).values
-
-        logit = logit.masked_fill(logit < cutoff, -float("inf"))
-
-        top_k_logit_idxs = (logit[0]!=-float("inf")).nonzero()
-
-        for tpo_k_idx in top_k_logit_idxs:
-            kl_div = float("inf")
-            for j in range(len(log_tup)):
-                kl_div = min(kl_div, torch.nn.functional.kl_div(log_tup[j], one_hot[tpo_k_idx.item()], reduction='batchmean').item())
-            logit[0][tpo_k_idx.item()] = -kl_div
-
-        x = nn.functional.softmax(logit, dim=-1)
-
-        next_id = torch.multinomial(x, num_samples=1).squeeze(1)        
-        next_id = next_id * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
-        
-        unfinished_sequences = unfinished_sequences.mul(
-                        next_id.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
-                    )
-    
-        input_ids = torch.cat([input_ids, next_id[:, None]], dim=-1)
-        # print(tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0])
-        # print()
-        if unfinished_sequences.max() == 0:
-            break
-
-    generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    return generated_results
-
 def top_p_and_temp_filtering(logit, top_p=0.5, temperature=0.5):
     logits_processed = logit / temperature
     sorted_logits, sorted_indices = torch.sort(logits_processed, descending=False)
@@ -327,7 +117,7 @@ def top_p_and_temp_filtering(logit, top_p=0.5, temperature=0.5):
     logits_processed = logits_processed.masked_fill(indices_to_remove, float("-inf"))
     return logits_processed
     
-def plausibility_decoding_kl_2_3_sample(model, tokenizer, image_processor, prompt, image_path, log_tup, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
+def vdgd(model, tokenizer, image_processor, prompt, image_path, log_tup, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
 
     bos_token_id = tokenizer.bos_token_id
     eos_token_id = tokenizer.eos_token_id
@@ -388,29 +178,7 @@ def plausibility_decoding_kl_2_3_sample(model, tokenizer, image_processor, promp
     generated_results = tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0]
     return generated_results
 
-def cfg_decoding(model, tokenizer, image_processor, prompt, image_path, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
-
-    device = model.device
-
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(model.device)
-    image = Image.open(image_path)
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0].unsqueeze(0).half().to(model.device)
-    input_token_len = input_ids.shape[1]
-
-    with torch.inference_mode():
-        output_ids = model.generate(
-            input_ids,
-            images=image_tensor,
-            do_sample=True,
-            guidance_scale=1.5,
-            max_new_tokens=max_len
-        )    
-
-    generated_results = tokenizer.batch_decode(output_ids[:, input_token_len:], skip_special_tokens=True)[0]
-    return generated_results
-
 def eval_model(args):
-    # Model
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
@@ -425,27 +193,16 @@ def eval_model(args):
 
     with open(args.logits_file, 'rb') as f:
         logit_tuples = pickle.load(f)
-    count=-1
+
     for line, log_tup in tqdm(zip(questions, logit_tuples)):
-        count = count + 1
-        if count <200:
-            continue
         log_tup = tuple(torch.nn.functional.log_softmax(tensor[0].to(model.device), dim=-1) for tensor in log_tup)
         idx = line["id"]
         image_file = line["image"]
-        # qs = line["text"]
         for conv in line["conversations"]:
             if conv["from"] == "human":
                 qs = conv["value"]
-                # am_prompt = llm_templates[args.amateur_model_path].format(in_text=qs.replace("<image>\n", ""))
                 break
-        # print(am_prompt)
         cur_prompt = qs
-        print(cur_prompt)
-        # if model.config.mm_use_im_start_end:
-        #     qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
-        # else:
-        #     qs = DEFAULT_IMAGE_TOKEN + '\n' + qs
 
         conv = conv_templates[args.conv_mode].copy()
         
@@ -456,38 +213,13 @@ def eval_model(args):
             conv.append_message(conv.roles[0], qs)
             conv.append_message(conv.roles[1], None)
         prompt = conv.get_prompt()
-        
-        # stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
-        # keywords = [stop_str]
-        # stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
-        if args.decoding_type == "pd_kl":
-            results = plausibility_decoding_kl(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file), log_tup)
-        elif args.decoding_type == "pd_kl_ml_sample":
-            results = plausibility_decoding_kl_multinomial_sample(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file), log_tup)
-        elif args.decoding_type == "pd_kl_2_3_sample":
-            results = plausibility_decoding_kl_2_3_sample(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file), log_tup)
-        elif args.decoding_type == "pd":
-            results = plausibility_decoding(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file))
-        elif args.decoding_type == "ad":
-            results = adaptive_decoding(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file))
+
+        if args.decoding_type == "vdgd":
+            results = vdgd(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file), log_tup)
         elif args.decoding_type == "sd":
             results = sample_decoding(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file))
-        elif args.decoding_type == "cfg":
-            results = cfg_decoding(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file))
         elif args.decoding_type == "gd":
             results = greedy_decoding(model, tokenizer, image_processor, prompt, os.path.join(args.image_folder, image_file))
-        print(results)
-        print()
-        # break
-        # input_token_len = input_ids.shape[1]
-        # n_diff_input_output = (input_ids != output_ids[:, :input_token_len]).sum().item()
-        # if n_diff_input_output > 0:
-        #     print(f'[Warning] {n_diff_input_output} output_ids are not the same as the input_ids')
-        # outputs = tokenizer.batch_decode(output_ids[:, input_token_len:], skip_special_tokens=True)[0]
-        # outputs = outputs.strip()
-        # if outputs.endswith(stop_str):
-        #     outputs = outputs[:-len(stop_str)]
-        # outputs = outputs.strip()
 
         ans_file.write(json.dumps({"question_id": idx,
                                    "prompt": cur_prompt,

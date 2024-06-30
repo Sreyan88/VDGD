@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #F4F4F4;
+  }
+  
+  .container {
+    width: 80%;
+    margin: 0 auto auto auto; /* Centers the content and adds equal left and right margin */
+  }
+  h2 {
+    color: #333;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0px;
+  }
+  #actions {
+    background-color: #fff;
+    padding: 0px;
+    box-sizing: border-box;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  #prompt {
+    background-color: #fff;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  #actions a {
+    text-decoration: none;
+    color: #333;
+    display: inline-block; /* Change here */
+    margin: 1px 2px 2px 0px; /* Change here */
+  }
+  #actions a:hover {
+    color: #007BFF;
+  }
+  #content {
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid #ddd;
+    padding: 10px 10px 10px 10px;
+    text-align: center;
+  }
+  th {
+    text-align: center;
+    background-color: #007BFF;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <h1>URIAL Website: <a href="https://ai2-urial.github.io/">https://ai2-urial.github.io/</a> </h1>
+  <h2>List of examples</h2>
+  <div id="content">
+    <table>
+      <tr><th>IDs</th> <th>Inputs</th> </tr> 
+      #{{rows}}
+    </table>
+  </div>
+</div>
+</body>
+</html>

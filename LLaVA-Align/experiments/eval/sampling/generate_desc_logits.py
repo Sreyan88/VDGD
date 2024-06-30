@@ -47,7 +47,7 @@ def eval_model(args):
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)
     ans_file = open(answers_file, "a")
-    file_path = f'logits_{question_file}.pkl'
+    file_path = f'description_logits/logits_{question_file}.pkl'
     logits_list = []
     for index, line in tqdm(enumerate(questions)):
         idx = line["id"]
