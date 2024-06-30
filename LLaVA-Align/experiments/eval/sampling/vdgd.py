@@ -28,6 +28,8 @@ llm_templates = {
     "meta-llama/Llama-2-7b-chat-hf": "[INST] <<SYS>>\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n<</SYS>>\n\n{in_text} [/INST]"
 }
 
+final_prompt = "The input image is described as follows: {desc} {question}"
+
 def greedy_decoding(model, tokenizer, image_processor, prompt, image_path, do_sample=False, max_len=512, epsilon=0.001, alpha=0.1):
 
     bos_token_id = tokenizer.bos_token_id
@@ -170,8 +172,7 @@ def vdgd(model, tokenizer, image_processor, prompt, image_path, log_tup, do_samp
                     )
     
         input_ids = torch.cat([input_ids, next_id[:, None]], dim=-1)
-        # print(tokenizer.batch_decode(input_ids[:, input_token_len:], skip_special_tokens=True)[0])
-        # print()
+
         if unfinished_sequences.max() == 0:
             break
 
@@ -187,6 +188,7 @@ def eval_model(args):
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
 
     questions = [json.loads(q) for q in open(os.path.expanduser(args.question_file), "r")]
+    descriptions = [json.loads(q) for q in open(os.path.expanduser(args.desc_file), "r")]
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)
     ans_file = open(answers_file, "a")
@@ -194,13 +196,13 @@ def eval_model(args):
     with open(args.logits_file, 'rb') as f:
         logit_tuples = pickle.load(f)
 
-    for line, log_tup in tqdm(zip(questions, logit_tuples)):
+    for line, desc, log_tup in tqdm(zip(questions, descriptions, logit_tuples)):
         log_tup = tuple(torch.nn.functional.log_softmax(tensor[0].to(model.device), dim=-1) for tensor in log_tup)
         idx = line["id"]
         image_file = line["image"]
         for conv in line["conversations"]:
             if conv["from"] == "human":
-                qs = conv["value"]
+                qs = final_prompt.format(desc=desc["text"], input=conv["value"])
                 break
         cur_prompt = qs
 
@@ -235,8 +237,9 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", type=str, default="facebook/opt-350m")
     parser.add_argument("--model_base", type=str, default=None)
     parser.add_argument("--image_folder", type=str, default="")
-    parser.add_argument("--question_file", type=str, default="./data/POPE/coco/coco_pope_adversarial.json")
-    parser.add_argument("--answers_file", type=str, default="./output/llava15_coco_pope_adversarial_setting.jsonl")
+    parser.add_argument("--question_file", type=str, default="./vallu_benchmark.jsonl")
+    parser.add_argument("--answers_file", type=str, default="./out.jsonl")
+    parser.add_argument("--desc_file", type=str, default="./desc.jsonl")
     parser.add_argument("--logits_file", type=str, required=True)
     parser.add_argument("--decoding_type", type=str, required=True)
     parser.add_argument("--kl_reduction", type=str, default="min")
