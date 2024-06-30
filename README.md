@@ -185,6 +185,11 @@ Supported Arguments:
 6. `decoding_type` - Type of decoding to use, example: `vdgd`, `gd`(greedy) and `sd` (sampling).
 7. `kl_reduction` - KL Divergence reduction use `avg`, `sum` or `min`.
 
+## VaLLu Benchmark
+![VaLLu](./assets/vallu.png)
+
+Please download the dataset from [here](https://drive.google.com/file/d/1QPISJ_2qszTeopQEnR3jmA31n4qTlYsG/view).
+
 ## 🌻 Acknowledgement  
 We use the code from the following repositories: [LLaVA](https://github.com/haotian-liu/LLaVA), [MplugOwl2](https://github.com/X-PLUG/mPLUG-Owl/tree/main/mPLUG-Owl2), [AlignTDS](https://github.com/Re-Align/AlignTDS), [LLaMA-Factory
 ](https://github.com/hiyouga/LLaMA-Factory) and [LLaVA-Align](https://github.com/yfzhang114/LLaVA-Align).
