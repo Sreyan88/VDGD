@@ -181,8 +181,8 @@ Supported Arguments:
 2. `question_file` - Path to the inference dataset.
 3. `answers_file` - Path to the output inference generation.
 4. `logits_file` - Path to the description logits file.
-5. `decoding_type` - Type of decoding to use, example: vdgd, gd(greedy) and sd(sampling)
-6. `kl_reduction` - KL Divergence reduction use "avg", "sum" or "min".
+5. `decoding_type` - Type of decoding to use, example: `vdgd`, `gd` (greedy) and `sd` (sampling).
+6. `kl_reduction` - KL Divergence reduction use `avg`, `sum` or `min`.
 
 ## 🌻 Acknowledgement  
 We use the code from the following repositories: [LLaVA](https://github.com/haotian-liu/LLaVA), [MplugOwl2](https://github.com/X-PLUG/mPLUG-Owl/tree/main/mPLUG-Owl2), [AlignTDS](https://github.com/Re-Align/AlignTDS), [LLaMA-Factory
