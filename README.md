@@ -150,7 +150,7 @@ python generate_desc_logits.py \
 --model_path liuhaotian/llava-v1.5-7b \
 --amateur_model_path meta-llama/Llama-2-7b-chat-hf \
 --question_file vallu_benchmark.jsonl \
---answers_file out.jsonl \
+--answers_file desc_out.jsonl \
 --use_dd
 ```
 
@@ -170,6 +170,7 @@ python vdgd.py \
 --model_path liuhaotian/llava-v1.5-7b \
 --question_file vallu_benchmark.jsonl \
 --answers_file output.jsonl \
+--desc_file desc_out.jsonl\
 --logits_file description_logits/logits_vallu_benchmark.pkl \
 --decoding_type "vdgd" \
 --kl_reduction "avg"
