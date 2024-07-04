@@ -13,10 +13,17 @@ import numpy as np
 
 import json
 import re
+import os
 
 model_generated_dataset_name = sys.argv[1]
 object_file_path = sys.argv[2]
 gpt_eval_file_name = sys.argv[3]
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+datasets_dir = os.path.abspath(os.path.join(current_dir, '..', 'datasets'))
+align_tds_dir = os.path.abspath(os.path.join(current_dir, '..', 'AlignTDS'))
+inference_gen_dir = os.path.abspath(os.path.join(current_dir, '..', 'inference_generations'))
+gpt_evaluations_dir = os.path.abspath(os.path.join(current_dir, '..', 'gpt_evaluations'))
 
 stop_words = set(stopwords.words('english'))
 
@@ -83,7 +90,7 @@ def get_word_indices_for_phrase(sentence, start_char_idx, end_char_idx):
     # Return the range of word indices
     return list(range(start_word_idx, end_word_idx + 1))
 
-with open(f"../AlignTDS/src/demo/just_eval+{model_generated_dataset_name}_tp.pkl", "rb") as input_file:
+with open(os.path.join(align_tds_dir, f"src/demo/just_eval+{model_generated_dataset_name}_tp.pkl"), "rb") as input_file:
     e = pickle.load(input_file)
 
 model_name = "meta-llama/Llama-2-7b-hf"
@@ -96,7 +103,7 @@ top_k_it_images_dict = json.load(open(top_k_it_images_file_path, "r"))
 top_k_pt_images_dict = json.load(open(top_k_pt_images_file_path, "r"))
 
 #Read the questions file
-with open("../amber.jsonl","r") as file:
+with open(os.path.join(datasets_dir, "amber.jsonl"),"r") as file:
     prompt_list = []
     image_list = []
     for line in file:
@@ -107,7 +114,7 @@ with open("../amber.jsonl","r") as file:
                 prompt_list.append(conv["value"])
 
 # read evaluation file
-with open(f'../gpt_evaluations/{gpt_eval_file_name}.json',"r") as file, open(object_file_path, "r") as obj_file:
+with open(os.path.join(gpt_evaluations_dir, f'{gpt_eval_file_name}.json'),"r") as file, open(object_file_path, "r") as obj_file:
     evaluation_list = []
     for line, obj_line in zip(file, obj_file):
         data = json.loads(line)
@@ -134,7 +141,7 @@ for item in evaluation_list:
         "action_verb_hallucinations": [i.lstrip().rstrip() for i in item['score']["action/verb hallucinations"]["tokens"].split(",") if i not in (' ','')]
     }
 
-print(f"Pre prcoess phrase counter : {pre_process_phrase_counter}")
+# print(f"Pre prcoess phrase counter : {pre_process_phrase_counter}")
 
 import re
 pattern_exclude_spaces = r'\w+|[^\w\s]|\n'

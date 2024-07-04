@@ -79,6 +79,9 @@ Token analysis per dataset entry will be stored at `./AlignTDS/src/demo/docs/{mo
 
 ```
 cd AlignTDS/ 
+
+pip install -r requirements.txt #This command should be run in a new environment and includes support LLaVA and CogVLM.
+
 sh run.sh <llm_model_name> <shard_size> <num_gpus> <model_generated_dataset_name> <dataset_length>
 ```
 
