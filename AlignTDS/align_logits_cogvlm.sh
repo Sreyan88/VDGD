@@ -1,12 +1,8 @@
-export HF_HOME=..//cache
-
-python -c "from huggingface_hub.hf_api import HfFolder; HfFolder.save_token('')"
-
-module load cuda/11.8.0
+current_directory=$(pwd)
 
 # i2i   
-instruct_data_file="data/$4.json"
-logits_folder="saved_logits/just_eval_1000/$4/shards/"
+instruct_data_file="$current_directory/data/$4.json"
+logits_folder="$current_directory/saved_logits/just_eval_1000/$4/shards/"
 # i2i
 mkdir -p $logits_folder
 n_shards=$3 # or 1 if you only have one gpu
@@ -38,7 +34,7 @@ echo "Merging the shards"
 
 python src/scripts/merge_logits.py saved_logits/just_eval_1000/$4/ $4 i2i
 
-logits_folder="saved_logits/just_eval_1000/$4_tp/shards/"
+logits_folder="$current_directory/saved_logits/just_eval_1000/$4_tp/shards/"
 mkdir -p $logits_folder
 n_shards=$3
 shard_size=$2
@@ -69,9 +65,9 @@ done
 
 echo "Merging the shards"
 
-python src/scripts/merge_logits.py saved_logits/just_eval_1000/$4_tp/ $4 i2b
+python $current_directory/src/scripts/merge_logits.py $current_directory/saved_logits/just_eval_1000/$4_tp/ $4 i2b
 
-python src/demo/data_prep.py $4_tp saved_logits/just_eval_1000/$4/$4-i2i.pkl saved_logits/just_eval_1000/$4_tp/$4-i2b.pkl
+python $current_directory/src/demo/data_prep.py $4_tp $current_directory/saved_logits/just_eval_1000/$4/$4-i2i.pkl $current_directory/saved_logits/just_eval_1000/$4_tp/$4-i2b.pkl
 
 arg3=$2
 
@@ -81,4 +77,4 @@ if (( arg3 > $5 )); then
     arg3=$5
 fi
 
-python src/demo/generate_html.py $4_tp $arg3
+python $current_directory/src/demo/generate_html.py $4_tp $arg3

@@ -1,7 +1,3 @@
-export HF_HOME=..//cache
-
-python -c "from huggingface_hub.hf_api import HfFolder; HfFolder.save_token('')"
-
 module load cuda/11.8.0
 
 if [[ $1 == "llava_1.5" ]]; then

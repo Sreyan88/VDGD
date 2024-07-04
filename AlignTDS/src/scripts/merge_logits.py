@@ -15,8 +15,6 @@ split =  sys.argv[3]
 # Get a list of all pickle files in the directory
 pickle_files = [file for file in os.listdir(directory_path+"/shards") if file.endswith('.pkl')]
 
-print(pickle_files)
-
 def extract_start_id(filename):
     s = filename.index("[")+1
     e = filename.index(":")
@@ -25,8 +23,6 @@ def extract_start_id(filename):
 
 # Sort the pickle files based on their names
 pickle_files.sort(key=lambda x: extract_start_id(x))
-
-print(pickle_files)
 
 # Initialize an empty list to store the merged data
 merged_data = []
@@ -39,7 +35,7 @@ for pickle_file in pickle_files:
         merged_data.extend(data_list)
 
 # Now, the merged_data list contains the merged data from all pickle files
-print("Merged data length:", len(merged_data))
+# print("Merged data length:", len(merged_data))
 
 # print(merged_data[0].keys())
 

@@ -10,17 +10,21 @@ file_name = sys.argv[2]
 out_file_name = sys.argv[3]
 sampling = int(sys.argv[4])
 
-with open(f"../datasets/{file_name}.jsonl","r") as file:
+current_dir = os.path.dirname(os.path.abspath(__file__))
+datasets_dir = os.path.abspath(os.path.join(current_dir, '..', 'datasets'))
+align_tds_dir = os.path.abspath(os.path.join(current_dir, '..', 'AlignTDS'))
+inference_gen_dir = os.path.abspath(os.path.join(current_dir, '..', 'inference_generations'))
+
+with open(os.path.join(datasets_dir, f'{file_name}.jsonl'),"r") as file:
     prompt_list = []
     image_list = []
 
     for line in file:
         data = json.loads(line)
-        image_list.append(data["image"])
+        image_list.append(os.path.join(datasets_dir, data["image"]))
         for conv in data["conversations"]:
             if conv["from"] == "human":
                 if file_name.startswith("mathvision_openqa"):
-                    print(file_name)
                     if "<image2>" in conv["value"]:
                         prompt_list.append("<image>\n" + conv["value"])
                     else:
@@ -47,7 +51,7 @@ with open(f"../datasets/{file_name}.jsonl","r") as file:
         }
 
         preds, final_prompts = eval_model_loop(args)
-        with open(f"../inference_generations/{out_file_name}.jsonl", "w") as file, open(f"../AlignTDS/data/{out_file_name}.json", "w") as file_tds:
+        with open(os.path.join(inference_gen_dir, f'{out_file_name}.jsonl'), "w") as file, open(os.path.join(align_tds_dir, 'data/', f'{out_file_name}.json'), "w") as file_tds:
             json_data = []
             count = 0
             for p, pred, fp, imp in zip(prompt_list, preds, final_prompts, image_list):
@@ -90,7 +94,7 @@ with open(f"../datasets/{file_name}.jsonl","r") as file:
             "max_new_tokens": 512
         }
         preds, final_prompts = eval_model_loop(args)
-        with open(f"../inference_generations/{out_file_name}.jsonl", "w") as file, open(f"../AlignTDS/data/{out_file_name}.json", "w") as file_tds:
+        with open(os.path.join(inference_gen_dir, f'{out_file_name}.jsonl'), "w") as file, open(os.path.join(align_tds_dir, 'data/', f'{out_file_name}.json'), "w") as file_tds:
             json_data = []
             count = 0
             for p, pred, fp, imp in zip(prompt_list, preds, final_prompts, image_list):

@@ -45,8 +45,8 @@ with open(f"../AlignTDS/data/{pair_name.replace('_tp', '')}.json") as f:
     print("Loading:", f.name)
     json_data = json.load(f)
 
-template_file =  "src/demo/template.html"
-index_file =  "src/demo/index.html"
+template_file =  os.path.join(parent_dir, "demo/template.html")
+index_file =   os.path.join(parent_dir, "demo/index.html")
 
 with open(template_file) as f:
     template = f.read()
@@ -68,7 +68,7 @@ def genertate_page(ind=0, template=None):
     image_path = json_data[ind]["image_path"]
     item["prompt"] = json_data[ind]["pure_input"]#.replace("# Query:", "").replace("# Answer:", "").replace("```", "")
     template = template.replace("#{{prompt}}", item["prompt"])
-    template = template.replace("#{{image_path}}", "/" + os.path.relpath(image_path, ""))
+    template = template.replace("#{{image_path}}", image_path)
     template = template.replace("#{{probe_text}}", item["probe_text"])
     # template = template.replace("#{{base_output}}", item["base_output"])
 
@@ -199,7 +199,7 @@ with open(f"../AlignTDS/src/demo/docs/{pair_name}_justeval/index.html", "w") as 
     
 # exit()  
     
-print(token_counts)
+# print(token_counts)
 
 
 # common_marginal_tokens = dict(sorted(marginal_tokens.items(), key=lambda x:x[1], reverse=True))
@@ -245,7 +245,7 @@ exit()
 shifted_list = []
 for t, f in common_shifted_tokens[:50]:
     shifted_list.append(f"'{t}'")
-print(", ".join(shifted_list))
+# print(", ".join(shifted_list))
 
 # compute the percentage of each token being shifted 
 shifted_ratio = {}

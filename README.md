@@ -30,7 +30,7 @@ python llava_v1_inference.py <dataset_name> <output_file_name> <sampling_flag>
 
 CogVLM -
 ```
-python cogvlm_inference.py <dataset_name> <output_file_name>
+python cogvlm_inference.py --file_name <dataset_name> --out_file_name <output_file_name>
 ```
 
 MplugOwl2([Repository Setup](https://github.com/X-PLUG/mPLUG-Owl/tree/main/mPLUG-Owl2)) -
@@ -49,7 +49,7 @@ python llava_inference.py liuhaotian/llava-v1.6-vicuna-7b amber llava_16_amber 0
 
 python llava_v1_inference.py amber llava_v1_amber 0
 
-python cogvlm_inference.py amber cogvlm_amber
+python cogvlm_inference.py --file_name amber --out_file_name cogvlm_amber
 ```
 
 Supported Arugments:

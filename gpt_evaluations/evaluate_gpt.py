@@ -12,6 +12,9 @@ import sys
 
 file_name = sys.argv[1]
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+datasets_dir = os.path.abspath(os.path.join(current_dir, '..', 'datasets'))
+
 def encode_image(image_path):
   with open(image_path, "rb") as image_file:
     return base64.b64encode(image_file.read()).decode('utf-8')
@@ -50,7 +53,7 @@ def prompt_gpt(prompt_input, vision_input, json_output = True):
     return response
 
 def get_llm_summary():
-    with open(f"../datasets/{file_name}.jsonl", "r") as file:
+    with open(os.path.join(datasets_dir, f'{file_name}.jsonl'),"r") as file:
         prompt_list = []
         image_list = []
         id_list = []
@@ -58,7 +61,7 @@ def get_llm_summary():
 
         for idx, data in enumerate(file):
             data = json.loads(data)
-            image_list.append(data["image"])
+            image_list.append(os.path.join(datasets_dir, data["image"]))
             prompt_list.append(data["prompt"].replace("\n<image>","").replace("<image>\n",""))
             id_list.append(data["question_id"])
             answer_list.append(data["text"])

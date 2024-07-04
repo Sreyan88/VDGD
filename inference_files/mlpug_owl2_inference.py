@@ -8,21 +8,28 @@ from mplug_owl2.model.builder import load_pretrained_model
 from mplug_owl2.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 from tqdm.auto import tqdm
 import sys
+import os
 
 file_name = sys.argv[1]
-sampling = int(sys.argv[2])
-out_file_name = sys.argv[3]
+out_file_name = sys.argv[2]
+sampling = int(sys.argv[3])
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+datasets_dir = os.path.abspath(os.path.join(current_dir, '..', 'datasets'))
+align_tds_dir = os.path.abspath(os.path.join(current_dir, '..', 'AlignTDS'))
+inference_gen_dir = os.path.abspath(os.path.join(current_dir, '..', 'inference_generations'))
 
 model_path = 'MAGAer13/mplug-owl2-llama2-7b'
 results = []
-file = open(f'../datasets/{file_name}.jsonl','r')
+align_data = []
+file = open(os.path.join(datasets_dir, f'{file_name}.jsonl'), 'r')
 file = file.readlines()
 file = [eval(i) for i in file]
 model_name = get_model_name_from_path(model_path)
 tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, None, model_name, load_8bit=False, load_4bit=False, device="cuda")
 
 for i in tqdm(file, total=len(file), desc="Generations"):
-    image_file = i['image']
+    image_path = os.path.join(datasets_dir, i['image'])
     queries = i['conversations']
     query = ""
     for k in queries:
@@ -31,8 +38,8 @@ for i in tqdm(file, total=len(file), desc="Generations"):
     conv = conv_templates["mplug_owl2"].copy()
     roles = conv.roles
 
-    image = Image.open(image_file).convert('RGB')
-    max_edge = max(image.size) # We recommand you to resize to squared image for BEST performance.
+    image = Image.open(image_path).convert('RGB')
+    max_edge = max(image.size)
     image = image.resize((max_edge, max_edge))
 
     image_tensor = process_images([image], image_processor)
@@ -83,9 +90,29 @@ for i in tqdm(file, total=len(file), desc="Generations"):
         "image": i['image']
     }
 
+    tmp_align = {
+        "id": i['id'],
+        "pure_input": query,
+        "image_path": image_path,
+        "input": query,
+        "output": [
+            outputs
+        ],
+        "reference": "N/A"
+    }
+
+    align_data.append(tmp_align)
+
     if sampling == 0:
-        with open(f'../inference_generations/{out_file_name}.jsonl','a') as res:
-            res.write(json.dumps(tmp) + '\n')
+        with open(os.path.join(inference_gen_dir, f'{out_file_name}.jsonl'), 'a') as fout:
+            fout.write(json.dumps(tmp) + '\n')
     else:
-        with open(f'../inference_generations/{out_file_name}_sd.jsonl','a') as res:
-            res.write(json.dumps(tmp) + '\n')
+        with open(os.path.join(inference_gen_dir, f'{out_file_name}_sd.jsonl'), 'a') as fout:
+            fout.write(json.dumps(tmp) + '\n')
+
+if sampling == 0:
+    with open(os.path.join(align_tds_dir, 'data/', f'{out_file_name}.json'), 'w') as falign:
+        json.dump(align_data, falign, indent=4)
+else:
+    with open(os.path.join(align_tds_dir, 'data/', f'{out_file_name}_sd.json'), 'w') as falign:
+        json.dump(align_data, falign, indent=4)

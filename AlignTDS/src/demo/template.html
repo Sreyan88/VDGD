@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+  }
+  
+  .container {
+    width: 80%;
+    margin: 0 auto auto auto; /* Centers the content and adds equal left and right margin */
+  }
+  h2 {
+    color: #333;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0px;
+  }
+  #actions {
+    background-color: #fff;
+    padding: 0px;
+    box-sizing: border-box;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  #prompt {
+    background-color: #fff;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  .prefix {
+    background-color: #ddd;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  #actions a {
+    text-decoration: none;
+    color: #333;
+    display: inline-block; /* Change here */
+    margin: 1px 2px 2px 0px; /* Change here */
+  }
+  #actions a:hover {
+    color: #007BFF;
+  }
+  #content {
+    padding: 0px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid #ddd;
+    padding: 2px 2px 2px 2px;
+    text-align: center;
+  }
+  th {
+    text-align: center;
+    background-color: #007BFF;
+    color: white;
+  }
+  sub {
+    font-size:7pt
+  } 
+</style>
+</head>
+<body>
+
+<div class="container">  <!-- Added a container div to hold everything -->
+  <br />
+  <br />
+  <h2> ID: #{{instance_id}} </h2> 
+  <!-- Input: -->
+  <div id="prompt" style="font-size: 14pt;text-align:left">
+    #{{prompt}}
+    <br />
+    <img src="#{{image_path}}" style="width: 400px; height: 300px;">
+  </div>
+
+  <!-- <h2> Base-LLM Response: </h2>
+  <div id="prompt" style="font-size: 12pt;">
+    #{{base_output}}
+  </div> -->
+ 
+  <h2> Aligned LLM's Response: </h2>
+  <div id="actions" style="text-align:left">
+    #{{inst_actions}}
+  </div>
+  <h4><b>Legend:</b> <span style="font-weight: 400; color: rgba(255, 0, 0, 1);">Shifted positions</span> &nbsp;|&nbsp;
+    <span style="font-weight: 400; color: rgba(155, 100, 0, 1);">Marginal positions</span> &nbsp;|&nbsp;
+    <span style="font-weight: 400; color: blue;">Unshifted positions</span></h4>
+  
+  <h2>Token Distributions </h2>
+
+  <div id="content"></div>
+
+  
+  <div style="display: flex; justify-content: space-between;">
+  <div style="text-align: left;"><a href="#{{prev_link}}"> Previous </a></div>
+  <div style="text-align: center;"><a href="index.html"> Home </a></div>
+  <div style="text-align: right;"><a href="#{{next_link}}"> Next</a></div>
+  </div>
+
+  
+</div>
+
+<script>
+$(document).ready(function(){
+    const words = #{{words_data}}
+    $('.action').click(function(e){
+        e.preventDefault();
+        $('#content').html(words[$(this).data('target')]);
+    });
+});
+</script>
+
+</body>
+</html>

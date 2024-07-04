@@ -27,10 +27,16 @@ parser.add_argument("--out_file_name", type=str, required=True)
 args = parser.parse_args()
 
 file_name = args.file_name
+out_file_name = args.out_file_name
 
 MODEL_PATH = args.from_pretrained
 TOKENIZER_PATH = args.local_tokenizer
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+datasets_dir = os.path.abspath(os.path.join(current_dir, '..', 'datasets'))
+align_tds_dir = os.path.abspath(os.path.join(current_dir, '..', 'AlignTDS'))
+inference_gen_dir = os.path.abspath(os.path.join(current_dir, '..', 'inference_generations'))
 
 tokenizer = LlamaTokenizer.from_pretrained(TOKENIZER_PATH)
 if args.bf16:
@@ -59,13 +65,14 @@ else:
 
 text_only_template = "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. USER: {} ASSISTANT:"
 
-file = open(f'../datasets/{file_name}.jsonl', 'r')
+file = open(os.path.join(datasets_dir, f'{file_name}.jsonl'), 'r')
 file = file.readlines()
 file = [eval(i) for i in file]
 
+align_data = []
 results = []
 for idx, i in tqdm(enumerate(file)):
-    image_path = i['image']
+    image_path = os.path.join(datasets_dir, i['image'])
     image = Image.open(image_path).convert('RGB')
 
     history = []
@@ -109,9 +116,7 @@ for idx, i in tqdm(enumerate(file)):
         outputs = model.generate(**inputs, **gen_kwargs)
         outputs = outputs[:, inputs['input_ids'].shape[1]:]
         response = tokenizer.decode(outputs[0])
-        print("response raw: ", response)
         response = response.split("</s>")[0]
-        print("\nCog:", response)
 
     tmp_align = {
         "id": i['id'],
@@ -131,8 +136,10 @@ for idx, i in tqdm(enumerate(file)):
         "image": image_path
     }
 
-    with open(f'../AlignTDS/data/{out_file_name}.jsonl', 'a') as falign:
-        falign.write(json.dumps(tmp_align)+'\n')
+    align_data.append(tmp_align)
 
-    with open(f'../inference_generations/{out_file_name}.jsonl', 'a') as fout:
+    with open(os.path.join(inference_gen_dir, f'{out_file_name}.jsonl'), 'a') as fout:
         fout.write(json.dumps(tmp)+'\n')
+
+with open(os.path.join(align_tds_dir, 'data/', f'{out_file_name}.json'), 'w') as falign:
+    json.dump(align_data, falign, indent=4)
