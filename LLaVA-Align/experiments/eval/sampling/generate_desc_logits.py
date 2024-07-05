@@ -47,7 +47,7 @@ def eval_model(args):
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)
     ans_file = open(answers_file, "a")
-    file_path = f'description_logits/logits_{question_file}.pkl'
+    file_path = args.logit_out_file
     logits_list = []
     for index, line in tqdm(enumerate(questions)):
         idx = line["id"]
@@ -141,6 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_base", type=str, default=None)
     parser.add_argument("--image_folder", type=str, default="")
     parser.add_argument("--question_file", type=str, default="./data/POPE/coco/coco_pope_adversarial.json")
+    parser.add_argument("--logit_out_file", type=str, default="./data/POPE/coco/coco_pope_adversarial.json")
     parser.add_argument("--answers_file", type=str, default="./output/llava15_coco_pope_adversarial_setting.jsonl")
     parser.add_argument("--conv_mode", type=str, default="llava_v1")
     parser.add_argument("--num-chunks", type=int, default=1)

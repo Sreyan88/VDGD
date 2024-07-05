@@ -154,6 +154,7 @@ python generate_desc_logits.py \
 --amateur_model_path meta-llama/Llama-2-7b-chat-hf \
 --question_file vallu_benchmark.jsonl \
 --answers_file desc_out.jsonl \
+--logit_out_file logits_out.pkl\
 --use_dd
 ```
 
@@ -163,7 +164,8 @@ Supported arguments:
 2. `amateur_model_path` - Path to the base LLM.
 3. `question_file` - Path to the inference dataset.
 4. `answers_file` - Path to the output inference generation.
-5. `use_dd` - Flag to use debiased decoding.
+5. `logit_out_file` - Path to store description logits in a `.pkl` file.
+6. `use_dd` - Flag to use debiased decoding.
 
 Logits are stored at `./LLaVA-Align/experiments/eval/sampling/description_logits/logits_{question_file}.pkl`
 

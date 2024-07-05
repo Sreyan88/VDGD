@@ -202,7 +202,7 @@ def eval_model(args):
         image_file = line["image"]
         for conv in line["conversations"]:
             if conv["from"] == "human":
-                qs = final_prompt.format(desc=desc["text"], input=conv["value"])
+                qs = final_prompt.format(desc=desc["text"], question=conv["value"])
                 break
         cur_prompt = qs
 
