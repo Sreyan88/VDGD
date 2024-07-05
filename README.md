@@ -3,8 +3,10 @@ Code for the paper: [VDGD: Mitigating LVLM Hallucinations in Cognitive Prompts b
 
 ![Proposed Methodology](./assets/vdgd.png)
 
-## Prepare the environment
+## Prepare the environment(for vdgd inference)
 ```
+conda create --name vdgd python=3.10
+
 pip install -r requirements.txt
 ```
 
@@ -143,6 +145,8 @@ Supported arguments:
 ## VDGD Inference
 This section details the execution of `VDGD` algorithm for LVLM inference.
 
+Copy code from `LLaVA-Align/transformers_utils.py` to `./conda/envs/vdgd/lib/python3.10/site-packages/transformers/generation/utils.py`.
+
 ```
 cd ./LLaVA-Align/experiments/eval/sampling/
 ```
@@ -174,7 +178,7 @@ For VDGD Inference:
 python vdgd.py \
 --model_path liuhaotian/llava-v1.5-7b \
 --question_file vallu_benchmark.jsonl \
---answers_file output.jsonl \
+--answers_file output.jsonl\
 --desc_file desc_out.jsonl\
 --logits_file description_logits/logits_vallu_benchmark.pkl \
 --decoding_type "vdgd" \
