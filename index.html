@@ -29,18 +29,18 @@
         <p align="center" style="font-size: 1.2em;">
             <sup>1</sup>University of Maryland, <sup>2</sup>Adobe
         </p>
-            
-        
+
+
         <div class="button-container">
             <a href="https://arxiv.org/pdf/2405.15683" class="button"><i class="fas fa-file-pdf"></i> Paper</a>
             <a href="https://github.com/Sreyan88/VDGD" class="button"><i class="fab fa-github"></i> Code</a>
             <a href="https://drive.google.com/file/d/1QPISJ_2qszTeopQEnR3jmA31n4qTlYsG/view" class="button"><i class="fab fa-database"></i> VaLLu</a>
         </div>
         <br>
-        
+
         <h2>Abstract</h2>
         <p>Large Vision-Language Models (LVLMs) often produce responses that misalign with factual information, a phenomenon known as hallucinations. While hallucinations are well-studied, the exact causes behind them remain underexplored. In this paper, we first investigate the root causes of hallucinations in LVLMs. Our findings reveal that existing mitigation techniques primarily reduce hallucinations for visual recognition prompts—those that require simple descriptions of visual elements—but fail for cognitive prompts that demand deliberate reasoning. We identify the core issue as a lack of true visual perception in LVLMs: although they can accurately recognize visual elements, they struggle to fully interpret these elements in the context of the input prompt and effectively link this recognition to their internal knowledge, which is critical for reasoning. To address this gap, we introduce Visual Description Grounded Decoding (VDGD), a simple, robust, and *training-free* method designed to enhance visual perception and improve reasoning capabilities in LVLMs. VDGD works by first generating a detailed description of the image and appending it as a prefix to the instruction. During response generation, tokens are sampled based on their KL divergence to the description, favoring candidates with lower divergence. Experimental results on multiple visual reasoning benchmarks and LVLMs demonstrate that VDGD consistently outperforms existing baselines  2% - 33%. Finally, we introduce VaLLu, a benchmark designed for comprehensive evaluation of the cognitive capabilities of LVLMs.</p>
-        
+
         <h2>Key Findings</h2>
         <h3>1. Existing Hallucination Mitigation Fails for Cognitive Prompts</h3>
         <p>While prior techniques work well for visual recognition tasks, they fail when applied to cognitive prompts requiring reasoning.</p>
@@ -52,8 +52,8 @@
                 (Left) Performance comparison of different LVLMs on various benchmarks. (Right) Performance comparison of different hallucination mitigation techniques applied to LLaVA-1.5.
               </p>
             </figcaption>
-        </figure>        
-        
+        </figure>
+
         <h3>2. Visual Hallucinations Exist in Multiple Forms</h3>
         <p>We categorize hallucinations into four types: Language, Vision, Style, and Instruction Tuning (IT). Existing methods only mitigate a subset.</p>
         <figure>
@@ -75,7 +75,7 @@
                     <b>Figure 3:</b> Base Rank Comparison between AMBER and MATH-Vision datasets as a function of token position in responses (for CogVLM).
                 </figcaption>
             </figure>
-        
+
             <figure style="text-align: center; width: 55%;">
                 <img src="static/lm_radar_combined-1.png" style="width: 100%;" />
                 <figcaption>
@@ -83,21 +83,69 @@
                 </figcaption>
             </figure>
         </div>
-        
-        
+
+        <div />
+
+
         <h3>4. VDGD Bridges the Perception Gap</h3>
         <p>By generating a detailed image description and using KL divergence to guide response generation, VDGD reduces hallucinations and improves reasoning.</p>
         <figure>
             <p align="center"><img src="static/vllm-kl4.png" width="75%" class="center" /></p>
             <figcaption>
               <p style="text-align: center;">
-                <font color="000000"><b>Figure 2:</b>
+                <font color="000000"><b>Figure 5:</b>
                     Illustration of our proposed VDGD method.
               </p>
             </figcaption>
         </figure>
-        
-        <h2>Results</h2>
+
+        <h2 class="text-center">5. Differences between VDGD and Other Baselines</h2>
+        <table class="table table-bordered" style="margin: 0 auto; text-align: center;">
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>VDGD</th>
+                    <th>Other Baselines</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1. Training Requirement</td>
+                    <td>
+                        <b>Training-free</b> approach that appends a detailed image description
+                        and uses KL divergence for robust decoding
+                    </td>
+                    <td>
+                        Often require additional training, fine-tuning, or specialized
+                        modules to address object hallucinations
+                    </td>
+                </tr>
+                <tr>
+                    <td>2. Scope of Mitigation</td>
+                    <td>
+                        Targets <b>all forms</b> of hallucinations—especially those in
+                        <em>cognitive prompts</em>—by bridging the “visual perception gap”
+                    </td>
+                    <td>
+                        Primarily reduce <b>object-based</b> or “visual recognition” hallucinations;
+                        limited efficacy on more complex, <em>reasoning-intensive</em> tasks
+                    </td>
+                </tr>
+                <tr>
+                    <td>3. Performance Gains</td>
+                    <td>
+                        Consistently outperforms baselines by <b>2%–33%</b> on multiple benchmarks,
+                        improving both <em>reasoning</em> and recognition accuracy
+                    </td>
+                    <td>
+                        Show <b>smaller</b> or <em>no gains</em> on cognitive prompts requiring
+                        extended reasoning or domain knowledge
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>6. Results</h2>
         <p>We evaluate VDGD on multiple benchmarks, demonstrating improvements of 2%-33% over existing techniques.</p>
         <figure>
             <p align="center"><img src="static/vllm-table.png" width="75%" class="center" /></p>
@@ -108,6 +156,25 @@
               </p>
             </figcaption>
         </figure>
+
+        <h2>7. Qualitative comparison of greedy vs VCD vs VDGD</h2>
+        <p>We illustrate several instances from VaLLu and compare their responses for LLaVa-1.5 with Greedy, VCD, and VDGD Decoding.</p>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+            <figure style="text-align: center; width: 45%;">
+                <img src="static/example1.png" style="width: 100%;" />
+                <figcaption>
+                    <b>Figure 6:</b> Qualitative Example 1
+                </figcaption>
+            </figure>
+
+            <figure style="text-align: center; width: 45%;">
+                <img src="static/example2.png" style="width: 100%;" />
+                <figcaption>
+                    <b>Figure 7:</b> Qualitative Example 2
+                </figcaption>
+            </figure>
+        </div>
+
     </div>
 </body>
 </html>
