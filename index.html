@@ -38,10 +38,10 @@
         </div>
         <br>
 
-        <h2>Abstract</h2>
-        <p>Large Vision-Language Models (LVLMs) often produce responses that misalign with factual information, a phenomenon known as hallucinations. While hallucinations are well-studied, the exact causes behind them remain underexplored. In this paper, we first investigate the root causes of hallucinations in LVLMs. Our findings reveal that existing mitigation techniques primarily reduce hallucinations for visual recognition prompts—those that require simple descriptions of visual elements—but fail for cognitive prompts that demand deliberate reasoning. We identify the core issue as a lack of true visual perception in LVLMs: although they can accurately recognize visual elements, they struggle to fully interpret these elements in the context of the input prompt and effectively link this recognition to their internal knowledge, which is critical for reasoning. To address this gap, we introduce Visual Description Grounded Decoding (VDGD), a simple, robust, and *training-free* method designed to enhance visual perception and improve reasoning capabilities in LVLMs. VDGD works by first generating a detailed description of the image and appending it as a prefix to the instruction. During response generation, tokens are sampled based on their KL divergence to the description, favoring candidates with lower divergence. Experimental results on multiple visual reasoning benchmarks and LVLMs demonstrate that VDGD consistently outperforms existing baselines  2% - 33%. Finally, we introduce VaLLu, a benchmark designed for comprehensive evaluation of the cognitive capabilities of LVLMs.</p>
+        <h2 style="margin-top: 40px;">Abstract</h2>
+        <p style="margin-bottom: 20px;">Large Vision-Language Models (LVLMs) often produce responses that misalign with factual information, a phenomenon known as hallucinations. While hallucinations are well-studied, the exact causes behind them remain underexplored. In this paper, we first investigate the root causes of hallucinations in LVLMs. Our findings reveal that existing mitigation techniques primarily reduce hallucinations for visual recognition prompts—those that require simple descriptions of visual elements—but fail for cognitive prompts that demand deliberate reasoning. We identify the core issue as a lack of true visual perception in LVLMs: although they can accurately recognize visual elements, they struggle to fully interpret these elements in the context of the input prompt and effectively link this recognition to their internal knowledge, which is critical for reasoning. To address this gap, we introduce Visual Description Grounded Decoding (VDGD), a simple, robust, and *training-free* method designed to enhance visual perception and improve reasoning capabilities in LVLMs. VDGD works by first generating a detailed description of the image and appending it as a prefix to the instruction. During response generation, tokens are sampled based on their KL divergence to the description, favoring candidates with lower divergence. Experimental results on multiple visual reasoning benchmarks and LVLMs demonstrate that VDGD consistently outperforms existing baselines  2% - 33%. Finally, we introduce VaLLu, a benchmark designed for comprehensive evaluation of the cognitive capabilities of LVLMs.</p>
 
-        <h2>Key Findings</h2>
+        <h2 style="margin-top: 40px;">Key Findings</h2>
         <h3>1. Existing Hallucination Mitigation Fails for Cognitive Prompts</h3>
         <p>While prior techniques work well for visual recognition tasks, they fail when applied to cognitive prompts requiring reasoning.</p>
         <figure>
@@ -54,8 +54,8 @@
             </figcaption>
         </figure>
 
-        <h3>2. Visual Hallucinations Exist in Multiple Forms</h3>
-        <p>We categorize hallucinations into four types: Language, Vision, Style, and Instruction Tuning (IT). Existing methods only mitigate a subset.</p>
+        <h3 style="margin-top: 40px;">2. Visual Hallucinations Exist in Multiple Forms</h3>
+        <p style="margin-bottom: 20px;">We categorize hallucinations into four types: Language, Vision, Style, and Instruction Tuning (IT). Existing methods only mitigate a subset.</p>
         <figure>
             <p align="center"><img src="static/vllm.drawio5.png" width="75%" class="center" /></p>
             <figcaption>
@@ -66,8 +66,8 @@
             </figcaption>
         </figure>
 
-        <h3>3. LVLMs Have a Visual Perception Gap</h3>
-        <p>LVLMs can recognize visual elements but struggle to link them with internal knowledge, leading to incorrect reasoning.</p>
+        <h3 style="margin-top: 40px;">3. LVLMs Have a Visual Perception Gap</h3>
+        <p style="margin-bottom: 20px;">LVLMs can recognize visual elements but struggle to link them with internal knowledge, leading to incorrect reasoning.</p>
         <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
             <figure style="text-align: center; width: 40%;">
                 <img src="static/TR_line_cogvlm-1.png" style="width: 100%;" />
@@ -87,8 +87,8 @@
         <div />
 
 
-        <h3>4. VDGD Bridges the Perception Gap</h3>
-        <p>By generating a detailed image description and using KL divergence to guide response generation, VDGD reduces hallucinations and improves reasoning.</p>
+        <h3 style="margin-top: 40px;">4. VDGD Bridges the Perception Gap</h3>
+        <p style="margin-bottom: 20px;">By generating a detailed image description and using KL divergence to guide response generation, VDGD reduces hallucinations and improves reasoning.</p>
         <figure>
             <p align="center"><img src="static/vllm-kl4.png" width="75%" class="center" /></p>
             <figcaption>
@@ -99,7 +99,7 @@
             </figcaption>
         </figure>
 
-        <h2 class="text-center">5. Differences between VDGD and Other Baselines</h2>
+        <h2 style="margin-top: 40px;">5. Differences between VDGD and Other Baselines</h2>
         <table class="table table-bordered" style="margin: 0 auto; text-align: center;">
             <thead>
                 <tr>
@@ -145,8 +145,8 @@
             </tbody>
         </table>
 
-        <h2>6. Results</h2>
-        <p>We evaluate VDGD on multiple benchmarks, demonstrating improvements of 2%-33% over existing techniques.</p>
+        <h2 style="margin-top: 40px;">6. Results</h2>
+        <p style="margin-bottom: 20px;">We evaluate VDGD on multiple benchmarks, demonstrating improvements of 2%-33% over existing techniques.</p>
         <figure>
             <p align="center"><img src="static/vllm-table.png" width="75%" class="center" /></p>
             <figcaption>
@@ -157,8 +157,8 @@
             </figcaption>
         </figure>
 
-        <h2>7. Qualitative comparison of greedy vs VCD vs VDGD</h2>
-        <p>We illustrate several instances from VaLLu and compare their responses for LLaVa-1.5 with Greedy, VCD, and VDGD Decoding.</p>
+        <h2 style="margin-top: 40px;">7. Qualitative comparison of Greedy vs VCD vs VDGD Decoding Methods</h2>
+        <p style="margin-bottom: 20px;">We illustrate several instances from VaLLu and compare their responses for LLaVa-1.5 with Greedy, VCD, and VDGD Decoding.</p>
         <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
             <figure style="text-align: center; width: 45%;">
                 <img src="static/example1.png" style="width: 100%;" />
@@ -171,6 +171,49 @@
                 <img src="static/example2.png" style="width: 100%;" />
                 <figcaption>
                     <b>Figure 7:</b> Qualitative Example 2
+                </figcaption>
+            </figure>
+        </div>
+
+        <h2 style="margin-top: 40px;">7. The VaLLu Benchmark</h2>
+        <p style="margin-bottom: 20px;">VaLLu consists of 1,500 instances sourced from multiple benchmarks, including Oven, MMMU, MMC, MathVista, HallusionBench, MATH-Vision, and MME. It focuses exclusively on open-ended generation tasks, excluding Yes/No and multiple-choice questions, to focus on evaluating diverse forms of halluicnation by LVLMs. The dataset is carefully curated to balance affordability and task diversity, ensuring a comprehensive evaluation. Additionally, VaLLu undergoes manual filtering to remove noisy samples (we find existing benchmarks to have noisy samples as shown below) and is enriched with meta-data annotations and expert-provided responses for high-quality benchmarking.</p>
+        <figure>
+            <p align="center"><img src="static/chart-11-1.png" width="55%" class="center" /></p>
+            <figcaption>
+              <p style="text-align: center;">
+                <font color="000000"><b>Figure 8:</b>
+                    Distribution of task types in VaLLu.
+              </p>
+            </figcaption>
+        </figure>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px;">
+            <figure style="text-align: center; width: 50%;">
+                <img src="static/hallu_noisy_img_1-compressed-1.png" style="width: 100%;" />
+                <figcaption>
+                    <b>Figure 9:</b> Noisy example from HallusionBench
+                </figcaption>
+            </figure>
+
+            <figure style="text-align: center; width: 50%;">
+                <img src="static/mathvista_noisy_img_1-1.png" style="width: 100%; margin-top: 40px;" />
+                <figcaption>
+                    <b>Figure 10:</b> Noisy example from MathVista
+                </figcaption>
+            </figure>
+        </div>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 40px;">
+            <figure style="text-align: center; width: 50%;">
+                <img src="static/mmc_noisy_img_1-1.png" style="width: 100%;" />
+                <figcaption>
+                    <b>Figure 11:</b> Noisy example from MMC
+                </figcaption>
+            </figure>
+
+            <figure style="text-align: center; width: 50%;">
+                <img src="static/mmmu_noisy_img_1-1.png" style="width: 100%;" />
+                <figcaption>
+                    <b>Figure 12:</b> Noisy examples from MMMU
                 </figcaption>
             </figure>
         </div>
