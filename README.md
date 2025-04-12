@@ -1,5 +1,5 @@
 # VDGD
-Code for the paper: [VDGD: Mitigating LVLM Hallucinations in Cognitive Prompts by Bridging the Visual Perception Gap](https://arxiv.org/abs/2405.15683)
+Code for the paper: [Visual Description Grounding Reduces Hallucinations and Boosts Reasoning in LVLMs](https://arxiv.org/abs/2405.15683)
 
 ![Proposed Methodology](./assets/vdgd.png)
 
