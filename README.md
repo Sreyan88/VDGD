@@ -1,5 +1,5 @@
 # VDGD
-Code for the paper: [Visual Description Grounding Reduces Hallucinations and Boosts Reasoning in LVLMs](https://arxiv.org/abs/2405.15683)
+Paper: [Visual Description Grounding Reduces Hallucinations and Boosts Reasoning in LVLMs](https://arxiv.org/abs/2405.15683)
 
 Project Website is [here](https://sreyan88.github.io/VDGD/).
 
