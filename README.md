@@ -145,7 +145,9 @@ Supported arguments:
 ## VDGD Inference
 This section details the execution of `VDGD` algorithm for LVLM inference.
 
-Copy code from `LLaVA-Align/transformers_utils.py` to `./conda/envs/vdgd/lib/python3.10/site-packages/transformers/generation/utils.py`.
+1. Copy code from `LLaVA-Align/transformers_utils.py` to `./conda/envs/vdgd/lib/python3.10/site-packages/transformers/generation/utils.py`.
+
+2. Copy code from `LLaVA-Align/transformers_configuration_utils.py` to `./conda/envs/vdgd/lib/python3.10/site-packages/transformers/generation/configuration_utils.py`.
 
 ```
 cd ./LLaVA-Align/experiments/eval/sampling/
